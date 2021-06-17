@@ -27,7 +27,7 @@ even to schoolchildren.
 Mathematical analysis obviously concentrates the Hamilton integral. A closed
 set stabilizes an empirical absolutely convergent series. The postulate, in
 the first approximation, concentrates the parallel method of successive
-approximations.'''.lower()
+approximations.'''
 
 r_text = '''Абсолютно сходящийся ряд, как следует из вышесказанного, доказан. В общем, сумма ряда усиливает интеграл по поверхности, откуда следует доказываемое равенство. Контрпример притягивает эмпирический лист Мёбиуса, таким образом сбылась мечта идиота - утверждение полностью доказано. Замкнутое множество синхронизирует интеграл Фурье, при этом, вместо 13 можно взять любую другую константу. Подмножество оправдывает сходящийся ряд. До недавнего времени считалось, что наибольшее и наименьшее значения функции монотонно.
 Первообразная функция синхронизирует криволинейный интеграл. Рациональное число раскручивает критерий сходимости Коши. Уравнение в частных производных, конечно, необходимо и достаточно. Комплексное число поддерживает скачок функции. Сходящийся ряд восстанавливает максимум, что известно даже школьникам.
@@ -48,23 +48,24 @@ class TermExtractor():
         freq_dict = {}
 
         for n_gramm, f in frequrencies:
-            k = " ".join(n_gramm)
-            freq_dict.update({k: f})
+            if f > 1:
+                k = " ".join(n_gramm)
+                freq_dict.update({k: f})
         
         return freq_dict
         
     def __parse_text(self, src):
-        return [ x for x in src if re.match(r'\w+',x) and x not in stopwords ]
+        return [ x for x in ( x.lower() for x in src ) if re.match(r'\w+',x) and x not in stopwords ]
     
     def __init__(self):
         try:
             self.freq_dict = load(open('freq_dict.json'))
         except FileNotFoundError:
-            self.freq_dict = self.__collect_word_frequrencies(brown.words()[:100000])
+            self.freq_dict = self.__collect_word_frequrencies(brown.words()[:500000])
             dump(self.freq_dict, open('freq_dict.json','w'), indent=2)    
 
     def __call__(self, a_text, strings=1, limit=None):
-        tokens = self.__parse_text(a_text)
+        tokens = self.__parse_text(wpt.tokenize(a_text))
         
         local_frequrencies = []
         for n in range(1,5):
