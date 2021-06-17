@@ -1,6 +1,9 @@
+import re
+
 from nltk.tokenize import WordPunctTokenizer as WPT
 from nltk.corpus import stopwords as SW
 from nltk.corpus import brown
+from json import load, dump
 
 stopwords = set(SW.words('english'))
 
@@ -32,8 +35,8 @@ r_text = '''Абсолютно сходящийся ряд, как следуе�
 
 class TermExtractor():
     
-    def __init__(self):
-        the_corpora = [ x for x in brown.words()[:100000] if x not in set(".,*+=-'\"/\!1234567890()[]") and x not in stopwords ]
+    def __collect_word_frequrencies(self, _in):
+        the_corpora = self.__parse_text(_in)
         frequrencies = []
 
         for n in range(1,5):
@@ -42,15 +45,26 @@ class TermExtractor():
                 frequrencies += [(tuple(n_gramm), n_gramms.count(n_gramm))]
 
 
-        self.freq_dict = {}
+        freq_dict = {}
 
         for n_gramm, f in frequrencies:
             k = " ".join(n_gramm)
-            self.freq_dict.update({k: f})
+            freq_dict.update({k: f})
+        
+        return freq_dict
+        
+    def __parse_text(self, src):
+        return [ x for x in src if re.match(r'\w+',x) and x not in stopwords ]
     
+    def __init__(self):
+        try:
+            self.freq_dict = load(open('freq_dict.json'))
+        except FileNotFoundError:
+            self.freq_dict = self.__collect_word_frequrencies(brown.words()[:100000])
+            dump(self.freq_dict, open('freq_dict.json','w'), indent=2)    
 
     def __call__(self, a_text, strings=1, limit=None):
-        tokens = [ x for x in wpt.tokenize(a_text) if x not in set(".,*+=-'\"/\!1234567890()[]") and x not in stopwords ]
+        tokens = self.__parse_text(a_text)
         
         local_frequrencies = []
         for n in range(1,5):
@@ -83,7 +97,6 @@ if __name__ == '__main__':
     te = TermExtractor()
     print([ x for x in te(a_text) if x[0].count(' ') > 0 ])
     
-    print([ x for x in te(b_text) if x[0].count(' ') > 0 ])
     from rutermextract import TermExtractor as TE
     te = TE()
     print([ x for x in te(r_text,strings=1) if x.count(' ') > 0 ])
